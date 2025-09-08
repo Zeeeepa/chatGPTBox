@@ -278,7 +278,7 @@ function App() {
               autoComplete="off"
               ref={searchInputRef}
               onFocus={() => setForceExpand(true)}
-              onBlur={() => collapsed && setForceExpand(false)}
+              onBlur={() => setForceExpand(false)}
             />
           </div>
           <hr />
