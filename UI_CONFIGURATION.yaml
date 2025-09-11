@@ -1,0 +1,136 @@
+# config/ui.yaml
+# 🎨 UI Configuration - ChatGPTBox Integration
+ui:
+  # ChatGPTBox-Inspired Interface Settings
+  interface:
+    theme: "dark" # light, dark, auto
+    language: "en" # en, es, fr, de, zh, ja
+    
+    # InputBox Configuration (Based on ChatGPTBox patterns)
+    input_box:
+      # Auto-resize settings
+      auto_resize: true
+      min_height: "70px"
+      max_height: "160px"
+      resize_direction: "vertical" # vertical, reverse
+      
+      # Keyboard shortcuts
+      shortcuts:
+        send: "Enter"
+        new_line: "Shift+Enter"
+        stop_generation: "Escape"
+        clear_input: "Ctrl+L"
+        
+      # Placeholder text
+      placeholder:
+        enabled: "Type your question here\nEnter to send, shift + enter to break line"
+        disabled: "Type your question here\nEnter to stop generating\nShift + enter to break line"
+        
+      # Visual feedback
+      button_colors:
+        enabled: "#30a14e"  # Green when ready
+        disabled: "#cf222e"  # Red when processing
+        
+      # Browser adaptations
+      browser_specific:
+        safari_adaptations: true
+        firefox_adaptations: true
+        mobile_adaptations: true
+        
+    # ConversationCard Configuration
+    conversation_card:
+      # Window sizing
+      window_size:
+        min_width: 750
+        max_width: 1500
+        min_height: 250
+        max_height: 1100
+        
+      # Scrolling behavior
+      scroll:
+        auto_scroll: true
+        scroll_margin: 50
+        smooth_scroll: true
+        lock_when_answer: true
+        
+      # Message display
+      messages:
+        show_timestamps: true
+        show_model_name: true
+        markdown_rendering: true
+        code_highlighting: true
+        
+      # Export options
+      export:
+        formats: ["markdown", "txt", "json", "pdf"]
+        include_metadata: true
+        
+      # Toolbar options
+      toolbar:
+        show_model_selector: true
+        show_export_button: true
+        show_clear_button: true
+        show_float_button: true
+        show_archive_button: true
+        
+    # Real-time features
+    real_time:
+      typing_indicators: true
+      streaming_responses: true
+      live_word_count: true
+      response_time_display: true
+      
+    # Accessibility
+    accessibility:
+      high_contrast: false
+      large_text: false
+      keyboard_navigation: true
+      screen_reader_support: true
+      
+  # Enterprise Features
+  enterprise:
+    # User management UI
+    user_management:
+      show_user_avatar: true
+      show_user_role: true
+      show_usage_stats: true
+      
+    # Admin dashboard
+    admin_dashboard:
+      enabled: true
+      real_time_metrics: true
+      user_activity_monitor: true
+      cost_tracking: true
+      
+    # Stealth indicators
+    stealth_ui:
+      show_stealth_status: true
+      stealth_indicator_position: "top-right"
+      detection_alerts: true
+      
+    # Audit trail
+    audit:
+      show_conversation_id: true
+      show_request_trace: true
+      export_audit_logs: true
+      
+  # Customization
+  customization:
+    # Branding
+    branding:
+      logo_url: "/assets/logo.png"
+      company_name: "Enterprise AI"
+      primary_color: "#007bff"
+      secondary_color: "#6c757d"
+      
+    # Layout options
+    layout:
+      sidebar_position: "left" # left, right, hidden
+      header_style: "minimal" # minimal, full, hidden
+      footer_enabled: true
+      
+    # Advanced features
+    advanced:
+      developer_mode: false
+      debug_panel: false
+      performance_metrics: false
