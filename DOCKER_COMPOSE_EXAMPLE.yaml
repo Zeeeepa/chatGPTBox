@@ -1,0 +1,247 @@
+# docker-compose.yaml
+# 🐳 Docker Compose Configuration Example
+version: '3.8'
+
+services:
+  # Frontend Service (React/Next.js with ChatGPTBox UI)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://localhost:8080
+      - NEXT_PUBLIC_WS_URL=ws://localhost:8080
+    volumes:
+      - ./config/ui.yaml:/app/config/ui.yaml:ro
+    depends_on:
+      - core-orchestrator
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # Core Orchestrator (Go Service)
+  core-orchestrator:
+    build:
+      context: ./core-orchestrator
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - GO_ENV=production
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=ai_service_manager
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+    volumes:
+      - ./config/main.yaml:/app/config/main.yaml:ro
+      - ./config/providers.yaml:/app/config/providers.yaml:ro
+      - ./config/stealth_profiles.yaml:/app/config/stealth_profiles.yaml:ro
+      - ./config/security.yaml:/app/config/security.yaml:ro
+      - ./logs:/var/log/ai-manager
+    depends_on:
+      - database
+      - redis
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # API Gateway (Deno Service)
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - DENO_ENV=production
+      - CORE_ORCHESTRATOR_URL=http://core-orchestrator:8080
+      - STEALTH_PROXY_URL=http://stealth-proxy:8081
+    volumes:
+      - ./config/main.yaml:/app/config/main.yaml:ro
+    depends_on:
+      - core-orchestrator
+      - stealth-proxy
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # Stealth Proxy (Node.js with Thermoptic)
+  stealth-proxy:
+    build:
+      context: ./stealth-proxy
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - NODE_ENV=production
+      - CHROME_PATH=/usr/bin/google-chrome
+      - DISPLAY=:99
+    volumes:
+      - ./config/stealth_profiles.yaml:/app/config/stealth_profiles.yaml:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # Browser Automation Service (Go + ChromeDP)
+  browser-automation:
+    build:
+      context: ./browser-automation
+      dockerfile: Dockerfile
+    environment:
+      - GO_ENV=production
+      - CHROME_PATH=/usr/bin/google-chrome
+      - DISPLAY=:99
+    volumes:
+      - ./config/stealth_profiles.yaml:/app/config/stealth_profiles.yaml:ro
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # Database (PostgreSQL)
+  database:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=ai_service_manager
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ai_service_manager"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis (Caching and Session Storage)
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - ai-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring (Prometheus)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # Grafana (Visualization)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  # X11 Server (for headless browser automation)
+  xvfb:
+    image: jlesage/xvfb:latest
+    environment:
+      - DISPLAY_WIDTH=1920
+      - DISPLAY_HEIGHT=1080
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  ai-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Environment Variables Template (.env file)
+# Copy this to .env and fill in your values
+#
+# Database Configuration
+# DB_USERNAME=ai_manager
+# DB_PASSWORD=your_secure_password_here
+#
+# Redis Configuration
+# REDIS_PASSWORD=your_redis_password_here
+#
+# JWT Configuration
+# JWT_SECRET=your_jwt_secret_key_here
+#
+# API Keys (Optional - can be configured via UI)
+# OPENAI_API_KEY=sk-your-openai-key-here
+# ANTHROPIC_API_KEY=sk-ant-your-anthropic-key-here
+# GOOGLE_API_KEY=your-google-api-key-here
+#
+# OAuth2 Configuration (Optional)
+# GOOGLE_CLIENT_ID=your-google-client-id
+# GOOGLE_CLIENT_SECRET=your-google-client-secret
+# GITHUB_CLIENT_ID=your-github-client-id
+# GITHUB_CLIENT_SECRET=your-github-client-secret
+#
+# Monitoring
+# GRAFANA_PASSWORD=your_grafana_password_here
+#
+# Encryption Keys
+# API_KEY_ENCRYPTION_KEY=your-32-character-encryption-key-here
