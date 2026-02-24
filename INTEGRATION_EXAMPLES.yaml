@@ -1,0 +1,451 @@
+# config/integration_examples.yaml
+# 🔗 Integration Examples - Real-world Scenarios
+
+# Example 1: Development Environment
+development_scenario:
+  name: "Local Development Setup"
+  description: "Configuration for local development with minimal stealth"
+  
+  # Load main configuration
+  main_config: "config/main.yaml"
+  
+  # Override specific settings
+  overrides:
+    system:
+      environment: "development"
+      
+    services:
+      core_orchestrator:
+        port: 8080
+        workers: 2
+        
+      frontend:
+        port: 3000
+        hot_reload: true
+        
+    database:
+      host: "localhost"
+      name: "ai_service_manager_dev"
+      
+    logging:
+      level: "debug"
+      
+  # Minimal provider setup
+  providers:
+    - name: "openai_dev"
+      config: "providers.yaml#openai_gpt4"
+      overrides:
+        stealth:
+          enabled: false
+        rate_limit:
+          requests_per_minute: 10
+          
+  # Basic stealth profile
+  stealth_profiles:
+    - name: "dev_profile"
+      config: "stealth_profiles.yaml#chrome_latest"
+      overrides:
+        evasion:
+          webdriver_detection: false
+          
+  # Development UI
+  ui_config:
+    config: "ui.yaml"
+    overrides:
+      interface:
+        theme: "light"
+      enterprise:
+        admin_dashboard:
+          enabled: true
+      customization:
+        advanced:
+          developer_mode: true
+          debug_panel: true
+
+---
+
+# Example 2: Production Enterprise Setup
+production_scenario:
+  name: "Enterprise Production Environment"
+  description: "Full enterprise setup with maximum stealth and security"
+  
+  main_config: "config/main.yaml"
+  
+  overrides:
+    system:
+      environment: "production"
+      
+    services:
+      core_orchestrator:
+        workers: 8
+        
+    database:
+      max_connections: 200
+      ssl_mode: "require"
+      
+    logging:
+      level: "info"
+      file: "/var/log/enterprise-ai/system.log"
+      
+  # Full provider configuration
+  providers:
+    - name: "openai_primary"
+      config: "providers.yaml#openai_gpt4"
+      overrides:
+        priority: 1
+        stealth:
+          enabled: true
+          detection_threshold: 0.05
+          
+    - name: "claude_backup"
+      config: "providers.yaml#anthropic_claude"
+      overrides:
+        priority: 2
+        stealth:
+          enabled: true
+          
+    - name: "gemini_fallback"
+      config: "providers.yaml#google_gemini"
+      overrides:
+        priority: 3
+        enabled: true
+        
+  # Advanced stealth profiles
+  stealth_profiles:
+    - name: "enterprise_chrome"
+      config: "stealth_profiles.yaml#chrome_latest"
+      
+    - name: "enterprise_firefox"
+      config: "stealth_profiles.yaml#firefox_latest"
+      
+    - name: "enterprise_safari"
+      config: "stealth_profiles.yaml#safari_latest"
+      
+  # Production UI
+  ui_config:
+    config: "ui.yaml"
+    overrides:
+      interface:
+        theme: "dark"
+      enterprise:
+        admin_dashboard:
+          enabled: true
+          real_time_metrics: true
+        stealth_ui:
+          show_stealth_status: true
+          detection_alerts: true
+        audit:
+          show_conversation_id: true
+          export_audit_logs: true
+          
+  # Production security
+  security_config:
+    config: "security.yaml"
+    overrides:
+      authentication:
+        oauth2:
+          google:
+            enabled: true
+          github:
+            enabled: true
+      authorization:
+        roles:
+          admin:
+            permissions:
+              - "system:manage"
+              - "users:manage"
+              - "providers:manage"
+              - "stealth:configure"
+              - "audit:view"
+      audit:
+        enabled: true
+        retention: "2y"
+
+---
+
+# Example 3: High-Security Government Setup
+government_scenario:
+  name: "Government/Military High-Security Setup"
+  description: "Maximum security and stealth for sensitive environments"
+  
+  main_config: "config/main.yaml"
+  
+  overrides:
+    system:
+      environment: "production"
+      
+    database:
+      ssl_mode: "require"
+      encryption_at_rest: true
+      
+    logging:
+      level: "warn"
+      encryption: true
+      
+  # Restricted providers
+  providers:
+    - name: "secure_openai"
+      config: "providers.yaml#openai_gpt4"
+      overrides:
+        stealth:
+          enabled: true
+          detection_threshold: 0.01  # Ultra-low detection tolerance
+        rate_limit:
+          requests_per_minute: 30
+          requests_per_hour: 500
+        cost:
+          daily_budget: 500.0
+          
+  # Military-grade stealth
+  stealth_profiles:
+    - name: "military_chrome"
+      config: "stealth_profiles.yaml#chrome_latest"
+      overrides:
+        timing:
+          min_delay: 200
+          max_delay: 500
+        evasion:
+          webdriver_detection: true
+          automation_detection: true
+          headless_detection: true
+          canvas_fingerprinting: true
+          webgl_fingerprinting: true
+          
+  # Restricted UI
+  ui_config:
+    config: "ui.yaml"
+    overrides:
+      interface:
+        theme: "dark"
+      enterprise:
+        stealth_ui:
+          show_stealth_status: true
+          detection_alerts: true
+        audit:
+          show_conversation_id: true
+          show_request_trace: true
+          export_audit_logs: true
+      customization:
+        branding:
+          company_name: "Secure AI System"
+        advanced:
+          developer_mode: false
+          debug_panel: false
+          
+  # Maximum security
+  security_config:
+    config: "security.yaml"
+    overrides:
+      authentication:
+        jwt:
+          expiration: "4h"  # Shorter session
+        oauth2:
+          google:
+            enabled: false  # Disable external OAuth
+          github:
+            enabled: false
+      encryption:
+        at_rest:
+          algorithm: "AES-256-GCM"
+        database:
+          encrypt_sensitive_fields: true
+      rate_limiting:
+        global:
+          requests_per_minute: 500
+        per_user:
+          user:
+            requests_per_minute: 20
+      audit:
+        enabled: true
+        retention: "5y"
+        events:
+          - "user_login"
+          - "user_logout"
+          - "api_key_created"
+          - "api_key_deleted"
+          - "provider_added"
+          - "provider_modified"
+          - "conversation_created"
+          - "conversation_deleted"
+          - "stealth_detection"
+          - "security_violation"
+          - "unauthorized_access_attempt"
+
+---
+
+# Example 4: Multi-Tenant SaaS Setup
+saas_scenario:
+  name: "Multi-Tenant SaaS Platform"
+  description: "Configuration for serving multiple organizations"
+  
+  main_config: "config/main.yaml"
+  
+  overrides:
+    system:
+      environment: "production"
+      
+    services:
+      core_orchestrator:
+        workers: 16
+        
+    database:
+      max_connections: 500
+      connection_pool: true
+      
+  # Flexible provider setup per tenant
+  providers:
+    - name: "tenant_openai"
+      config: "providers.yaml#openai_gpt4"
+      tenant_configurable: true
+      overrides:
+        stealth:
+          enabled: true
+          profile_rotation: true
+          
+    - name: "tenant_claude"
+      config: "providers.yaml#anthropic_claude"
+      tenant_configurable: true
+      
+    - name: "tenant_gemini"
+      config: "providers.yaml#google_gemini"
+      tenant_configurable: true
+      
+  # Tenant-specific stealth profiles
+  stealth_profiles:
+    - name: "saas_chrome"
+      config: "stealth_profiles.yaml#chrome_latest"
+      tenant_customizable: true
+      
+    - name: "saas_firefox"
+      config: "stealth_profiles.yaml#firefox_latest"
+      tenant_customizable: true
+      
+  # Multi-tenant UI
+  ui_config:
+    config: "ui.yaml"
+    overrides:
+      interface:
+        theme: "auto"  # Let tenants choose
+      enterprise:
+        admin_dashboard:
+          enabled: true
+          tenant_isolation: true
+        user_management:
+          show_tenant_info: true
+      customization:
+        branding:
+          tenant_customizable: true
+        layout:
+          tenant_customizable: true
+          
+  # SaaS security
+  security_config:
+    config: "security.yaml"
+    overrides:
+      authentication:
+        oauth2:
+          google:
+            enabled: true
+          github:
+            enabled: true
+          microsoft:
+            enabled: true
+      authorization:
+        tenant_isolation: true
+        roles:
+          tenant_admin:
+            permissions:
+              - "tenant:manage"
+              - "users:manage_tenant"
+              - "providers:configure_tenant"
+          tenant_user:
+            permissions:
+              - "conversations:create"
+              - "conversations:view_own"
+              - "providers:use_tenant"
+      audit:
+        enabled: true
+        tenant_isolation: true
+        retention: "3y"
+
+---
+
+# Example 5: Edge/On-Premise Setup
+edge_scenario:
+  name: "Edge/On-Premise Deployment"
+  description: "Minimal resource setup for edge computing or on-premise"
+  
+  main_config: "config/main.yaml"
+  
+  overrides:
+    system:
+      environment: "production"
+      
+    services:
+      core_orchestrator:
+        workers: 2
+        memory_limit: "1GB"
+        
+    database:
+      type: "sqlite"
+      file: "/data/ai_manager.db"
+      
+    redis:
+      enabled: false  # Use in-memory cache
+      
+    logging:
+      level: "info"
+      output: "file"
+      
+  # Local/custom providers only
+  providers:
+    - name: "local_llama"
+      config: "providers.yaml#custom_api"
+      overrides:
+        enabled: true
+        api:
+          base_url: "http://localhost:11434/v1"
+        stealth:
+          enabled: false  # Not needed for local
+          
+  # Minimal stealth
+  stealth_profiles:
+    - name: "edge_profile"
+      config: "stealth_profiles.yaml#chrome_latest"
+      overrides:
+        evasion:
+          webdriver_detection: false
+          automation_detection: false
+          
+  # Simplified UI
+  ui_config:
+    config: "ui.yaml"
+    overrides:
+      interface:
+        theme: "light"
+      enterprise:
+        admin_dashboard:
+          enabled: false
+        stealth_ui:
+          show_stealth_status: false
+      customization:
+        branding:
+          company_name: "Local AI Assistant"
+        advanced:
+          developer_mode: false
+          
+  # Basic security
+  security_config:
+    config: "security.yaml"
+    overrides:
+      authentication:
+        oauth2:
+          google:
+            enabled: false
+          github:
+            enabled: false
+      rate_limiting:
+        global:
+          requests_per_minute: 100
+      audit:
+        enabled: false

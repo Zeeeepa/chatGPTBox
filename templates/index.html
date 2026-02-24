@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .interfaces-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .interface-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        .interface-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        
+        .interface-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .interface-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+        }
+        
+        .interface-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .interface-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .interface-status {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .launch-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+        
+        .launch-btn:hover {
+            opacity: 0.9;
+        }
+        
+        .stats-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        /* Interface-specific styling */
+        .claude-web { border-left: 5px solid #ff6b35; }
+        .copilot-code { border-left: 5px solid #24292e; }
+        .zai { border-left: 5px solid #00d4aa; }
+        .openai-proxy { border-left: 5px solid #10a37f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Multi-Chat WebUI Hub</h1>
+            <p>Choose your AI chat interface and start conversing</p>
+        </div>
+        
+        <div class="interfaces-grid">
+            {% for interface in interfaces %}
+            <a href="/interface/{{ interface.id }}" class="interface-card {{ interface.type }}">
+                <div class="interface-header">
+                    <div class="interface-icon">
+                        {% if interface.type == 'claude_web' %}🧠
+                        {% elif interface.type == 'copilot_code' %}💻
+                        {% elif interface.type == 'zai' %}🤖
+                        {% elif interface.type == 'openai_proxy' %}🔗
+                        {% endif %}
+                    </div>
+                    <div class="interface-title">{{ interface.name }}</div>
+                </div>
+                
+                <div class="interface-description">
+                    {{ interface.description }}
+                </div>
+                
+                <div class="interface-status">
+                    <span class="status-badge {% if interface.status == 'active' %}status-active{% else %}status-inactive{% endif %}">
+                        {{ interface.status.title() }}
+                    </span>
+                    <button class="launch-btn">Launch</button>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        
+        <div class="stats-section">
+            <h2>System Status</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">{{ interfaces|length }}</div>
+                    <div class="stat-label">Available Interfaces</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">{{ interfaces|selectattr("status", "equalto", "active")|list|length }}</div>
+                    <div class="stat-label">Active Interfaces</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">3</div>
+                    <div class="stat-label">Z.AI Instances</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Possibilities</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
